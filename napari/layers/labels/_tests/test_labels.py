@@ -13,6 +13,7 @@ from skimage import data
 
 from napari._tests.utils import check_layer_world_data_extent
 from napari.layers import Labels
+from napari.layers.image._image_constants import Rendering
 from napari.utils import Colormap
 from napari.utils.colormaps import low_discrepancy_image
 
@@ -268,7 +269,9 @@ def test_properties():
     assert isinstance(layer.properties, dict)
     assert len(layer.properties) == 0
 
-    properties = {'class': ['Background'] + [f'Class {i}' for i in range(20)]}
+    properties = {
+        'class': np.array(['Background'] + [f'Class {i}' for i in range(20)])
+    }
     label_index = {i: i for i in range(len(properties['class']))}
     layer = Labels(data, properties=properties)
     assert isinstance(layer.properties, dict)
@@ -332,7 +335,9 @@ def test_multiscale_properties():
     assert isinstance(layer.properties, dict)
     assert len(layer.properties) == 0
 
-    properties = {'class': ['Background'] + [f'Class {i}' for i in range(20)]}
+    properties = {
+        'class': np.array(['Background'] + [f'Class {i}' for i in range(20)])
+    }
     label_index = {i: i for i in range(len(properties['class']))}
     layer = Labels(data, properties=properties)
     assert isinstance(layer.properties, dict)
@@ -958,3 +963,38 @@ def test_fill_tensorstore():
         layer.fill((1, 4, 6, 7), 4)
         modified_labels = np.where(labels == 2, 4, labels)
         np.testing.assert_array_equal(modified_labels, np.asarray(data))
+
+
+@pytest.mark.parametrize(
+    'scale', list(itertools.product([-2, 2], [-0.5, 0.5], [-0.5, 0.5]))
+)
+def test_paint_3d_negative_scale(scale):
+    labels = np.zeros((3, 5, 11, 11), dtype=int)
+    labels_layer = Labels(
+        labels, scale=(1,) + scale, translate=(-200, 100, 100)
+    )
+    labels_layer.n_edit_dimensions = 3
+    labels_layer.brush_size = 8
+    labels_layer.paint((1, 2, 5, 5), 1)
+    np.testing.assert_array_equal(
+        np.sum(labels_layer.data, axis=(1, 2, 3)), [0, 95, 0]
+    )
+
+
+def test_rendering_init():
+    shape = (6, 10, 15)
+    np.random.seed(0)
+    data = np.random.randint(20, size=shape)
+    layer = Labels(data, rendering='iso_categorical')
+
+    assert layer.rendering == Rendering.ISO_CATEGORICAL.value
+
+
+def test_3d_video_and_3d_scale_translate_then_scale_translate_padded():
+    # See the GitHub issue for more details:
+    # https://github.com/napari/napari/issues/2967
+    data = np.zeros((3, 5, 11, 11), dtype=int)
+    labels = Labels(data, scale=(2, 1, 1), translate=(5, 5, 5))
+
+    np.testing.assert_array_equal(labels.scale, (1, 2, 1, 1))
+    np.testing.assert_array_equal(labels.translate, (0, 5, 5, 5))

@@ -256,8 +256,8 @@ QtLayerControlsContainer {
     border-radius: 2px;
     padding: 0px;
     margin: 10px;
-    min-height: 265px;
-    max-height: 265px;
+    min-height: 295px;
+    max-height: 295px;
     min-width: 240px;
     max-width: 240px;
     margin-left: 10px;
@@ -409,6 +409,14 @@ QtAbout > QTextEdit{
   padding: 2px;
 }
 
+/* ------------ Shortcut Editor ------------ */
+
+ShortcutEditor QHeaderView::section {
+  padding: 2px;
+  border: None;
+}
+
+
 /* ------------ Plugin Sorter ------------ */
 
 ImplementationListItem {
@@ -491,6 +499,16 @@ NapariQtNotification #severity_icon {
   color: {{ icon }};
 }
 
+/* ------------ Activity Dock ------------ */
+
+#QtCustomTitleLabel {
+  color: {{ primary }};
+  font-size: 11pt;  
+}
+
+#QtActivityButton:hover {
+  background-color: {{ lighten(background, 10) }};
+}
 
 /* ------------ Plugin Dialog ------------ */
 

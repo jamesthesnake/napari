@@ -9,6 +9,7 @@ from pydantic import BaseSettings, Field, ValidationError
 from pydantic.env_settings import SettingsSourceCallable
 from typing_extensions import TypedDict
 
+from ...utils.settings._constants import LoopMode
 from ...utils.shortcuts import default_shortcuts
 from .._base import _DEFAULT_LOCALE
 from ..events.evented_model import EventedModel
@@ -401,6 +402,18 @@ class ApplicationSettings(BaseNapariSettings):
         ),
     )
 
+    playback_fps: int = Field(
+        10,
+        title=trans._("Playback frames per second"),
+        description=trans._("Playback speed in frames per second."),
+    )
+
+    playback_mode: LoopMode = Field(
+        LoopMode.LOOP,
+        title=trans._("Playback loop mode"),
+        description=trans._("Loop mode for playback."),
+    )
+
     class Config:
         # Pydantic specific configuration
         schema_extra = {
@@ -445,11 +458,12 @@ class ShortcutsSettings(BaseNapariSettings):
     #    version, e.g. from 3.0.0 to 4.0.0
     # 3. You don't need to touch this value if you're just adding a new option
     schema_version: Union[SchemaVersion, Tuple[int, int, int]] = (0, 1, 1)
+
     shortcuts: Dict[str, List[str]] = Field(
         default_shortcuts,
         title=trans._("shortcuts"),
         description=trans._(
-            "Sort plugins for each action in the order to be called.",
+            "Set keyboard shortcuts for actions.",
         ),
     )
 
@@ -463,7 +477,7 @@ class ShortcutsSettings(BaseNapariSettings):
 
     class NapariConfig:
         # Napari specific configuration
-        preferences_exclude = ['schema_version', 'shortcuts']
+        preferences_exclude = ['schema_version']
 
 
 class PluginsSettings(BaseNapariSettings):
